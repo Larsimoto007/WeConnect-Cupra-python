@@ -45,7 +45,7 @@ class ChargingStatus(GenericStatus):
             self.chargeMode.fromDict(fromDict['value'], 'chargeMode')
             self.chargePower_kW.fromDict(fromDict['value'], 'chargePower_kW')
             if 'chargePower_kW' in fromDict['value']:
-                chargePower_kW = float(fromDict['value'].get('chargePower_kW') or 0)
+                chargePower_kW = float(fromDict['value']['chargePower_kW'])
                 if self.fixAPI and chargePower_kW != 0 \
                         and self.chargingState.value in [ChargingStatus.ChargingState.OFF,
                                                          ChargingStatus.ChargingState.READY_FOR_CHARGING,
@@ -59,7 +59,14 @@ class ChargingStatus(GenericStatus):
             else:
                 self.chargePower_kW.enabled = False
             if 'chargeRate_kmph' in fromDict['value']:
-                chargeRate_kmph = float(fromDict['value'].get('chargeRate_kmph') or 0)
+                if fromDict['value']['chargeRate_kmph']:
+                    try:
+                        chargeRate_kmph = float(fromDict['value']['chargeRate_kmph'])
+                    except ValueError:
+                        chargeRate_kmph = float(0)
+                else:
+                    chargeRate_kmph = float(0)
+
                 if self.fixAPI and chargeRate_kmph != 0 \
                         and self.chargingState.value in [ChargingStatus.ChargingState.OFF,
                                                          ChargingStatus.ChargingState.READY_FOR_CHARGING,
@@ -106,6 +113,8 @@ class ChargingStatus(GenericStatus):
             string += f'\n\tCharge Type: {self.chargeType.value.value}'
         if self.chargingSettings.enabled:
             string += f'\n\tCharging Settings: {self.chargingSettings.value}'
+        if self.chargeRate_kmph.enabled:
+            string += f'\n\tCharge Rate: {self.chargeRate_kmph.value} kmph'
         return string
 
     class ChargingState(Enum,):
